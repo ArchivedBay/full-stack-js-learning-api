@@ -49,14 +49,40 @@ router.post('/register', (req, res) => {
 
           newUser.password = hash;
           newUser.save()
-            .then(user => res.json(user) ) // return the user back as a response out of this entire http request.
-            .catch(error => console.log(error));
+            .then( user => res.json(user) ) // return the user back as a response out of this entire http request.
+            .catch( error => console.log(error) );
         })
       })
       
     })
-    .catch(error => console.log(error));
+    .catch( error => console.log(error) );
 });
+
+
+// @route   POST api/users/login
+// @desc    login the user
+// @access  Public
+router.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  User.findOne({ email }) // since the field in the database and the request parameter have the same name, you can just use email.
+    .then(user => {
+      if(!user) return res.status(400).json({email: 'no email matches the provided'})
+      //check the given user's password
+      bcrypt.compare(password, user.password)
+        .then( isValid => {
+          return isValid ? res.status(200).json({message: 'successfully logged in'}) : res.status(400).json({message: 'unauthorized'})
+        })
+        .catch(error => console.log(error) );
+
+    })
+    .catch( error => console.log(error) );
+  
+  
+
+});
+
 
 
 module.exports = router; // in order for server.js to be able to pick it up.
